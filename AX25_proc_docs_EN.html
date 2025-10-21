@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AX.25 Sequence Numbers</title>
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            font-family: 'Helvetica Neue', Helvetica, sans-serif;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+        strong {
+            font-weight: bold;
+        }
+        p {
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>AX.25 Sequence Numbers: V<sub>s</sub>, V<sub>r</sub>, and V<sub>a</sub></h1>
+
+    <p>The AX.25 Link Access Procedure (Data Link Layer) utilizes a sophisticated **sliding window protocol** to ensure all data frames are delivered reliably and in the correct sequence. The operational state of this link is governed by three primary sequence number variables, which are essential for tracking both sent and received data and enforcing flow control.</p>
+
+    <hr>
+
+    <h2>V<sub>s</sub> (Send Sequence Number)</h2>
+
+    <p>
+        <strong>V<sub>s</sub></strong> is the variable that tracks the sequence number of the **next Information (I) frame** your station is preparing to send. 
+        It effectively represents the **upper boundary** of the transmit window. When the last I-frame has been successfully transmitted, the V<sub>s</sub> counter is incremented.
+    </p>
+    
+    <hr>
+
+    <h2>V<sub>a</sub> (Acknowledge Sequence Number)</h2>
+
+    <p>
+        <strong>V<sub>a</sub></strong> marks the sequence number of the **earliest unacknowledged I-frame** that has been sent by your station. It defines the **lower boundary** of the transmit window.
+        <br><br>
+        <strong>Significance:</strong> All frames sent with sequence numbers between V<sub>a</sub> and V<sub>s</sub> are considered **outstanding** (sent but awaiting an acknowledgment). V<sub>a</sub> is crucial for **flow control**, as it prevents the station from sending more frames than the current window size permits.
+    </p>
+
+    <hr>
+
+    <h2>V<sub>r</sub> (Receive Sequence Number)</h2>
+
+    <p>
+        <strong>V<sub>r</sub></strong> is the counter that tracks the sequence number of the **next sequential I-frame your station expects to receive** from the remote station. It acts as the **inbound frame counter**.
+        <br><br>
+        <strong>Significance:</strong> If the sequence number of an incoming frame (N(S)) matches V<sub>r</sub>, the frame is accepted and V<sub>r</sub> is incremented. This V<sub>r</sub> value is then included in acknowledgment frames (R-frames) sent back, ensuring **cumulative acknowledgment** and correct, in-order data processing.
+    </p>
+
+</body>
+</html>
