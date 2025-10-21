@@ -1,0 +1,64 @@
+INSTALLING netstatAX25
+
+This document explains how to compile and
+install the netstatAX25 utility.
+
+
+PREREQUISITES
+-------------
+
+You'll need a standard build environment:
+
+- make
+- A C compiler (e.g., GCC or Clang)
+- AX.25 development libraries (check your
+  system's package manager).
+
+
+1. COMPILE THE SOURCE
+---------------------
+
+Navigate to the project directory and run make:
+
+    make
+
+The executable, netstatAX25, will be created
+in the current directory. Compilation should
+finish without errors.
+
+
+2. INSTALLATION
+---------------
+
+To install the compiled binary into the
+system directory, use the install target:
+
+    sudo make install
+
+NOTE: You must use sudo (or root access)
+to write files to system locations.
+
+
+CUSTOMIZING PATHS
+
+The installation path is defined in the Makefile.
+
+- To preview the installation commands without
+  running them (dry-run):
+
+    make -n install
+
+- To change the installation directory or
+  permissions, edit the Makefile before
+  running make install.
+
+
+3. VERIFICATION
+-----------------
+
+Once the application is installed, run it
+from any directory to confirm success:
+
+    netstatAX25
+
+If the application runs, installation is complete.
