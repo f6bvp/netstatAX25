@@ -1,0 +1,27 @@
+CHANGELOG
+
+1.0.0 - 2025-10-21
+
+The initial major release of netstatAX25, focused on providing robust and highly compatible AX.25 socket status reporting across various Linux kernel versions.
+
+Added
+
+    Initial release of the netstatAX25 utility.
+
+    Implemented core functionality to read and display active AX.25 sockets from /proc/net/ax25.
+
+    Added user-friendly INSTALLING and README.md files.
+
+Changed
+
+    State Mapping: Kernel numerical states are now mapped to legacy, user-friendly strings (e.g., 'ESTABLISHED', 'RECOVERY') for consistent user experience.
+
+Fixed
+
+    Kernel Compatibility: Resolved issues with the /proc/net/ax25 file format by introducing support for both headered and headerless data formats.
+
+    Dynamic Indexing: Corrected field parsing to ensure State, Vs, Vr, Send-Q, and Recv-Q are read correctly, compensating for index shifts present in older kernel versions.
+
+    Digipeater Extraction: Improved parsing logic to reliably extract comma-separated digipeaters from the destination field and display * when none are present.
+
+    Error Handling: Enhanced error reporting to provide specific diagnostic messages for common file access and parsing errors.
