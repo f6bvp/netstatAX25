@@ -165,39 +165,50 @@ if (has_header) {
     }
     
     char *digis = digis_buffer; 
-    int state_num, vs, vr;
-    // --- STATE, VS/VR LOGIC (Indices) ---
+    int state_num, vs, vr, va;
+    
+    // --- STATE, VS/VR/VA LOGIC (Indices) ---
     if (!has_header) {
-    // OLD FORMAT STATE: Index 4
+        // OLD FORMAT
+        // STATE: Index 4
         state_num = atoi(fields[4]);
-    // VS/VR: Indices 6 (Vs) and 7 (Vr)
+        
+        // VS/VR: Indices 6 (Vs) and 7 (Vr)
         vs = atoi(fields[6]);
         vr = atoi(fields[7]);
+        
+        // VA: Index 8 (Juste après Vr à l'index 7)
+        va = atoi(fields[8]); // <-- AJOUT DE VA
     }
     else {
-    // NEW FORMAT STATE: Index 6
+        // NEW FORMAT
+        // STATE: Index 6
         state_num = atoi(fields[6]);
-    // VS/VR: Indices 7 (Vs) and 8 (Vr)
+        
+        // VS/VR: Indices 7 (Vs) and 8 (Vr)
         vs = atoi(fields[7]);
         vr = atoi(fields[8]);
-    }    
+        va = atoi(fields[9]);
+    }   
 
     const char *state_str = get_ax25_state(state_num);
-    char vr_vs[8];
-    snprintf(vr_vs, sizeof(vr_vs), "%03d/%03d", vs, vr);
-
+    
+    char vs_vr_va[12];
+    
+    // Vs/Vr/Va
+    snprintf(vs_vr_va, sizeof(vs_vr_va), "%03d/%03d/%03d", vs, vr, va);
     // Send-Q and Recv-Q (Lecture avec les indices dynamiques)
     char *send_q = fields[send_q_idx]; 
     char *recv_q = fields[recv_q_idx]; 
     
     // Structured Netstat Output (8 columns)
-    printf("%-12s %-12s %-7s %-12s %-21s %-7s %7s %7s\n",
+    printf("%-12s %-12s %-7s %-12s %-21s %-12s %7s %7s\n",
            dest_call_raw, 
            source_call,
            interface,
            state_str,
            digis,           
-           vr_vs,
+           vs_vr_va,
            send_q,          
            recv_q           
     );
@@ -279,9 +290,8 @@ int main() {
 
     // Display formatted Netstat headers
     printf("Active AX.25 Sockets\n");
-    printf("%-12s %-12s %-7s %-12s %-21s %-7s %7s %7s\n",
-           "Dest", "Source", "Device", "State", "Digis", "Vs/Vr", "Send-Q", "Recv-Q");
-    
+    printf("%-12s %-12s %-7s %-12s %-21s %-12s %7s %7s\n",
+        "Destination", "Source", "Device", "State", "Digipeaters", "Vs/Vr/Va", "Send-Q", "Recv-Q");    
     // Loop through remaining data lines
     while (fgets(line, sizeof(line), file) != NULL) {
         line[strcspn(line, "\n")] = 0;
