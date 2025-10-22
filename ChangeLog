@@ -1,27 +1,73 @@
 CHANGELOG
 
+1.0.1 - 2025-10-22
+
+Maintenance release focused on metrics. Updated display for sequence numbers.
+
+Added
+
+    Unacknowledged Frames (Va):
+
+        Implemented logic to read the Va value.
+
+        Displays unacknowledged frames from /proc/net/ax25.
+
+Changed
+
+    Sequence Display Format:
+
+        The Vs/Vr column is updated.
+
+        Now shows the full sequence status: Vs/Vr/Va.
+
+        Provides a complete overview of frame counters.
+        
+        Vs (Send Sequence Number): "Displays the next frame number to be sent."
+
+        Vr (Receive Sequence Number): "Displays the next frame number expected from the remote station."
+
+        Va (Unacknowledged Frames): "Displays the number of frames sent but not yet acknowledged."
+
 1.0.0 - 2025-10-21
 
-The initial major release of netstatAX25, focused on providing robust and highly compatible AX.25 socket status reporting across various Linux kernel versions.
+Initial major release of netstatAX25. Focused on robust compatibility. Supports various Linux kernel versions.
 
 Added
 
     Initial release of the netstatAX25 utility.
 
-    Implemented core functionality to read and display active AX.25 sockets from /proc/net/ax25.
+    Core functionality implemented: read and display active AX.25 sockets.
 
-    Added user-friendly INSTALLING and README.md files.
+    Documentation files added: INSTALLING and README.md.
 
 Changed
 
-    State Mapping: Kernel numerical states are now mapped to legacy, user-friendly strings (e.g., 'ESTABLISHED', 'RECOVERY') for consistent user experience.
+    State Mapping:
+
+        Kernel numerical states are mapped.
+
+        Uses user-friendly strings (e.g., ESTABLISHED).
 
 Fixed
 
-    Kernel Compatibility: Resolved issues with the /proc/net/ax25 file format by introducing support for both headered and headerless data formats.
+    Kernel Compatibility:
 
-    Dynamic Indexing: Corrected field parsing to ensure State, Vs, Vr, Send-Q, and Recv-Q are read correctly, compensating for index shifts present in older kernel versions.
+        Resolved issues with the /proc/net/ax25 file format.
 
-    Digipeater Extraction: Improved parsing logic to reliably extract comma-separated digipeaters from the destination field and display * when none are present.
+        Supports both headered and headerless data formats.
 
-    Error Handling: Enhanced error reporting to provide specific diagnostic messages for common file access and parsing errors.
+    Dynamic Indexing:
+
+        Corrected field parsing.
+
+        Ensures accurate reading of queues and sequence numbers.
+
+    Digipeater Extraction:
+
+        Improved parsing logic.
+
+        Reliably extracts comma-separated digipeaters.
+
+    Error Handling:
+
+        Enhanced specific diagnostic error reports.
