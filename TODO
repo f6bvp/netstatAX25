@@ -1,24 +1,14 @@
 This file lists planned features for future versions of netstatAX25.
 
-Next Planned Version (v1.0.1 or v1.1.0)
+Completed Tasks (Version 1.0.1)
 
-    Display Va: Add the display of the Va value (Unacknowledged Frames) to the output.
-    This value must be read from the appropriate field in /proc/net/ax25 and integrated with the same level of compatibility as the existing Vs and Vr fields.
+    Display Va: Added the display of the Va value (Unacknowledged Frames)
+    to the output, integrated with full compatibility.
 
-    Documentation: Update the README.md and CHANGELOG after the implementation of the Va display.
+    Documentation: Updated the README.md and CHANGELOG to reflect the new Va feature.
 
-    Code Cleanup: Review error handling functions to ensure messages remain consistent after the addition of Va functionality.
+Next Planned Version (v1.1.0)
 
-Future Improvements
-
-    Filtering: Add the ability to filter the output by callsign or by connection state.
-
-    Verbose Mode: Introduce an option to display detailed timing information (T1, T2, N2, etc.) which are not visible in the default output.
-
-    Add optional color command parameter
-
-    Add -v verbose mode to display statistics link parameters t1, t2, t3, iddle, net ...
-
-    Create a similar procutils.c version for future /proc/net/ax25 format including headers procutils.c
-
-
+    Code Cleanup: Review error handling functions to ensure messages remain
+    consistent after the addition of Va functionality.
+    (This task remains as a final quality check).
