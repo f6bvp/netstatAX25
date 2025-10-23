@@ -1,40 +1,10 @@
-/*
- * netstatAX25
- *
- * Copyright (C) 2025 Bernard Pidoux, f6bvp / ai7bg
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
- */
-/*******************************************************************************
- * netstatAX25 - AX.25 Kernel Socket Status Utility
- *
- * Copyright (C) 2025 Bernard Pidoux, F6BVP / AI7BG
- *
- * This utility displays active AX.25 sockets, providing extensive compatibility
- * across various Linux kernel versions by handling different /proc/net/ax25
- * file formats and indexing schemes.
- *
- ******************************************************************************/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
 
-#define PROC_FILE "/proc/net/ax25"
+#define PROC_AX25_FILE "/proc/net/ax25"
 #define LINE_MAX_LEN 2048
 #define MAX_FIELDS 32
 
@@ -43,11 +13,11 @@ int has_header = 0;
 
 // AX.25 Compatible State Definitions
 const char *ax25_states_compat[] = {
-    "LISTENING",   
-    "SABM SENT",   
+    "LISTENING",    
+    "SABM SENT",    
     "DISC SENT", // Unused, but kept for array consistency
-    "ESTABLISHED", 
-    "RECOVERY",    
+    "ESTABLISHED",  
+    "RECOVERY",     
     "UNKNOWN_STATE"
 };
 
@@ -55,9 +25,6 @@ const char *ax25_states_compat[] = {
  * @brief Converts the numeric AX.25 state index to a compatible string.
  */
 const char *get_ax25_state(int state) {
-
-//    printf(" State %d ",state);
-
     if (state == 0) return ax25_states_compat[0]; // LISTENING
     if (state == 3) return ax25_states_compat[3]; // ESTABLISHED
 
@@ -85,25 +52,24 @@ void parse_netstat_format(char *line) {
     char *saveptr;
     int field_count = 0;
     
-    // --- SÉLECTION DYNAMIQUE DES INDICES ET DU SEUIL ---
+    // --- DYNAMIC SELECTION OF INDICES AND THRESHOLD ---
     int send_q_idx;
     int recv_q_idx;
-    int min_fields; // Le nombre minimum de champs requis
+    int min_fields; // The minimum number of required fields
 
-if (has_header) {
-    // --- NOUVEAU FORMAT (21 champs au total) ---
-    send_q_idx = 18; 
-    recv_q_idx = 19; 
-    min_fields = 21; // Seulement 21 champs sont requis pour accéder à l'index 20
-} else {
-    // --- ANCIEN FORMAT (Votre noyau, 24 champs au total) ---
-    send_q_idx = 21; 
-    recv_q_idx = 22; 
-    min_fields = 24; 
-}
+    if (has_header) {
+        // --- NEW FORMAT (Total 21 fields) ---
+        send_q_idx = 18;  
+        recv_q_idx = 19;  
+        min_fields = 21; 
+    } else {
+        // --- OLD FORMAT (Total 24 fields in kernel documentation) ---
+        // Note: Indices for Vs, Vr, Va were adjusted based on your input.
+        send_q_idx = 21;  
+        recv_q_idx = 22;  
+        min_fields = 24;  
+    }
 
-//    printf("%s", line);
- 
     char *line_copy = strdup(line);
     if (!line_copy) { perror("strdup"); return; }
     
@@ -114,20 +80,20 @@ if (has_header) {
         field_count++;
         token = strtok_r(NULL, " \t", &saveptr);
     }
-  
-    // --- 2. VÉRIFICATION DYNAMIQUE (Utilisation du seuil) ---
+    
+    // --- 2. DYNAMIC VALIDATION (Using the threshold) ---
     if (field_count < min_fields) { 
         free(line_copy);
         return;
     }
 
     // --- Retrieve main fields ---
-    char *dest_call_raw = fields[3]; 
+    char *dest_call_raw = fields[3];  
     char *source_call = fields[2];
     char *interface = fields[1];
     
     // --- DIGIPEATER (Digis) LOGIC ---
-    char digis_buffer[25]; 
+    char digis_buffer[25];  
     const char *digi1_str = NULL;
     const char *digi2_str = NULL;
     
@@ -137,12 +103,12 @@ if (has_header) {
         
         if (comma_sep != NULL) {
             // Comma found: Parse Digis from fields[3].
-            *comma_sep = '\0'; 
+            *comma_sep = '\0';  
             char *digi_chain = comma_sep + 1;
             char *second_comma = strchr(digi_chain, ',');
             
             if (second_comma != NULL) {
-                *second_comma = '\0'; 
+                *second_comma = '\0';  
                 digi2_str = second_comma + 1;
             }
             digi1_str = digi_chain;
@@ -158,59 +124,58 @@ if (has_header) {
         if (digi2_str) {
             snprintf(digis_buffer, sizeof(digis_buffer), "%-10s%-10s", digi1_str, digi2_str);
         } else {
-            snprintf(digis_buffer, sizeof(digis_buffer), "%-10s    -     ", digi1_str);
+            snprintf(digis_buffer, sizeof(digis_buffer), "%-10s    -      ", digi1_str);
         }
     } else {
-        snprintf(digis_buffer, sizeof(digis_buffer), "*"); 
+        snprintf(digis_buffer, sizeof(digis_buffer), "*");  
     }
     
-    char *digis = digis_buffer; 
+    char *digis = digis_buffer;  
     int state_num, vs, vr, va;
     
     // --- STATE, VS/VR/VA LOGIC (Indices) ---
     if (!has_header) {
-        // OLD FORMAT
+        // OLD FORMAT - Indices corrected based on user input
         // STATE: Index 4
         state_num = atoi(fields[4]);
         
-        // VS/VR: Indices 6 (Vs) and 7 (Vr)
-        vs = atoi(fields[6]);
-        vr = atoi(fields[7]);
-        
-        // VA: Index 8 (Juste après Vr à l'index 7)
-        va = atoi(fields[8]); // <-- AJOUT DE VA
+        // VS/VR/VA: Indices 5, 6, 7
+        vs = atoi(fields[5]); // Corrected from fields[6]
+        vr = atoi(fields[6]); // Corrected from fields[7]
+        va = atoi(fields[7]); // Corrected from fields[8]
     }
     else {
         // NEW FORMAT
         // STATE: Index 6
         state_num = atoi(fields[6]);
         
-        // VS/VR: Indices 7 (Vs) and 8 (Vr)
+        // VS/VR/VA: Indices 7, 8, 9
         vs = atoi(fields[7]);
         vr = atoi(fields[8]);
         va = atoi(fields[9]);
-    }   
+    }    
 
     const char *state_str = get_ax25_state(state_num);
     
     char vs_vr_va[12];
     
-    // Vs/Vr/Va
+    // Vs/Vr/Va formatting
     snprintf(vs_vr_va, sizeof(vs_vr_va), "%03d/%03d/%03d", vs, vr, va);
-    // Send-Q and Recv-Q (Lecture avec les indices dynamiques)
-    char *send_q = fields[send_q_idx]; 
-    char *recv_q = fields[recv_q_idx]; 
+    
+    // Send-Q and Recv-Q (Read with dynamic indices)
+    char *send_q = fields[send_q_idx];  
+    char *recv_q = fields[recv_q_idx];  
     
     // Structured Netstat Output (8 columns)
     printf("%-12s %-12s %-7s %-12s %-21s %-12s %7s %7s\n",
-           dest_call_raw, 
-           source_call,
-           interface,
-           state_str,
-           digis,           
-           vs_vr_va,
-           send_q,          
-           recv_q           
+        dest_call_raw,  
+        source_call,
+        interface,
+        state_str,
+        digis,         
+        vs_vr_va,
+        send_q,          
+        recv_q             
     );
     
     free(line_copy);
@@ -220,41 +185,35 @@ if (has_header) {
  * @brief Main function for reading, checking, and displaying AX.25 data.
  */
 int main() {
-    FILE *file;
+    FILE *pipe_fp = NULL;
     char line[LINE_MAX_LEN];
     int line_count = 0;
+    
+    // The command to read the file
+    char command[sizeof("/bin/cat ") + sizeof(PROC_AX25_FILE)];
+    sprintf(command, "/bin/cat %s", PROC_AX25_FILE);
 
-    // --- 1. File Opening and Error Check ---
-    file = fopen(PROC_FILE, "r");
-    if (file == NULL) {
-        fprintf(stderr, "Error: Cannot open file %s.\n", PROC_FILE);
-        
-        switch (errno) {
-            case ENOENT:
-                fprintf(stderr, "Diagnostic: File not found. This usually means the AX.25 kernel module is NOT loaded.\n");
-                fprintf(stderr, "Action: Try loading the module (e.g., 'sudo modprobe ax25') and ensure AX.25 is configured.\n");
-                break;
-            case EACCES:
-                fprintf(stderr, "Diagnostic: Permission denied. The user running this program cannot read the file.\n");
-                fprintf(stderr, "Action: Try running the program with root privileges (e.g., 'sudo ./netstat_procutils') or check file permissions.\n");
-                break;
-            default:
-                fprintf(stderr, "System Error: %s\n", strerror(errno));
-                break;
-        }
+    // --- 1. First Pass: Check for header and count lines ---
+    
+    // Use popen to read the file via the 'cat' command
+    if ((pipe_fp = popen(command, "r")) == NULL) {
+        fprintf(stderr, "Error: Cannot open pipe for command '%s'.\n", command);
+        // popen errors often indicate inability to execute the shell or cat.
+        fprintf(stderr, "Diagnostic: Ensure '/bin/cat' is executable and your system environment is correct.\n");
         return EXIT_FAILURE;
     }
 
-    // --- 2. Check for header and count lines for activity ---
-    if (fgets(line, sizeof(line), file) == NULL) {
-        fclose(file);
-        fprintf(stdout, "Warning: File %s is empty. Is AX25 active ?\n", PROC_FILE);
+    // Check for header and count lines for activity
+    if (fgets(line, sizeof(line), pipe_fp) == NULL) {
+        pclose(pipe_fp); // Close the pipe
+        fprintf(stdout, "Warning: File %s is empty or unreadable. Is AX25 active ?\n", PROC_AX25_FILE);
         return EXIT_SUCCESS;
     }
     
     char *p = line;
-    while(isspace(*p)) p++; 
+    while(isspace(*p)) p++; // Skip leading whitespace
     
+    // Determine the presence of the header
     if (!isdigit(*p)) { 
         has_header = 1; 
         line_count = 1;
@@ -263,28 +222,33 @@ int main() {
         line_count = 1;
     }
 
-    while (fgets(line, sizeof(line), file) != NULL) {
+    // Count remaining lines
+    while (fgets(line, sizeof(line), pipe_fp) != NULL) {
         line_count++;
     }
     
-    fclose(file); 
+    // IMPORTANT: Close the pipe after the first read
+    pclose(pipe_fp); 
 
-    // --- 3. AX.25 Activity Check (Warning Logic) ---
+    // --- 2. AX.25 Activity Check (Warning Logic) ---
     if (line_count <= (has_header ? 1 : 0)) {
         fprintf(stdout, "Warning: No active AX.25 connections currently.\n");
         return EXIT_SUCCESS;
     }
 
-    // --- 4. Second pass: Read and display data ---
-    file = fopen(PROC_FILE, "r");
-    if (file == NULL) {
-        fprintf(stderr, "Error: Cannot reopen file %s: %s\n", PROC_FILE, strerror(errno));
+    // --- 3. Second Pass: Reopen the pipe to read and display data ---
+    // We MUST re-execute popen() because a pipe is not rewindable.
+    if ((pipe_fp = popen(command, "r")) == NULL) {
+        fprintf(stderr, "Error: Cannot reopen pipe for command '%s': %s\n", command, strerror(errno));
         return EXIT_FAILURE;
     }
 
-// Skip the header if present
+    // Skip the header if present
     if (has_header) {
-        if (fgets(line, sizeof(line), file) != NULL) {
+        if (fgets(line, sizeof(line), pipe_fp) == NULL) {
+             pclose(pipe_fp);
+             fprintf(stderr, "Error: Pipe closed unexpectedly after header check.\n");
+             return EXIT_FAILURE;
         }
     }
 
@@ -292,14 +256,16 @@ int main() {
     printf("Active AX.25 Sockets\n");
     printf("%-12s %-12s %-7s %-12s %-21s %-12s %7s %7s\n",
         "Destination", "Source", "Device", "State", "Digipeaters", "Vs/Vr/Va", "Send-Q", "Recv-Q");    
+        
     // Loop through remaining data lines
-    while (fgets(line, sizeof(line), file) != NULL) {
-        line[strcspn(line, "\n")] = 0;
+    while (fgets(line, sizeof(line), pipe_fp) != NULL) {
+        line[strcspn(line, "\n")] = 0; // Removes the newline character
         if (strlen(line) == 0) continue;
 
         parse_netstat_format(line);
     }
     
-    fclose(file);
+    // IMPORTANT: Close the pipe after the second read
+    pclose(pipe_fp);
     return EXIT_SUCCESS;
 }
