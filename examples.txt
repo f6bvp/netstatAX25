@@ -1,4 +1,39 @@
-Present display format of proc/net/ax25 is a real mess :
+
+Here are some examples of netstatAX25 output :
+
+AX25 connection using ax25_call from F6BVP to F6BVP-8 :
+# ax25_call axudp f6bvp f6bvp-8
+
+~/netstatAX25$ ./netstatAX25  
+Active AX.25 Sockets
+Dest         Source       Device  State        Digis                 Vs/Vr    Send-Q  Recv-Q
+F6BVP-8      F6BVP-0      ax0     ESTABLISHED  *                     002/000       0       0
+
+AX25 connection using ax25_call from F6BVP to F3KT-10 via F6BVP-8 :
+
+# ax25_call axudp f6bvp F3KT-10 f6bvp-8
+
+~/netstatAX25$ ./netstatAX25 
+Active AX.25 Sockets
+Dest         Source       Device  State        Digis                 Vs/Vr    Send-Q  Recv-Q
+F3KT-10      F6BVP-0      ax0     ESTABLISHED  F6BVP-8       -       000/000       0       0
+
+
+Example with a local active AX25 / ROSE FPAC node F6BVP-8/F6BVP-9
+
+~/netstatAX25$ ./netstatAX25  
+Active AX.25 Sockets
+Dest         Source       Device  State        Digis                 Vs/Vr    Send-Q  Recv-Q
+*            F6BVP-15*    ???     LISTENING    *                     000/000       0       0
+*            F6BVP-15     ???     LISTENING    *                     000/000       0       0
+F6BVP-9      F6BVP-13     ax0     ESTABLISHED  *                     004/006       *       *
+F6BVP-11     F6BVP-13     ax0     ESTABLISHED  *                     007/006       *       *
+*            F6BVP-12     ax0     LISTENING    *                     000/000       0       0
+*            F6BVP-12*    ax0     LISTENING    *                     000/000       0       0
+*            F6BVP-13*    ax0     LISTENING    *                     000/000       0       0
+*            F6BVP-2      ax0     LISTENING    *                     000/000       0       0
+
+Here are a few /proc/net/ax25 sample output illustrating the mess with old /proc/net/ax25 display :
 
 ~$ cat /proc/net/ax25
 00000000e0163908 ax0 F6BVP-0 F6BVP-8 3 0 2 0 0 20 0 3 82 300 0 0 0 10 5 2 256 0 0 702320
@@ -10,50 +45,26 @@ Present display format of proc/net/ax25 is a real mess :
 00000000982c2a1b ax0 F6BVP-12 * 0 0 0 0 0 10 0 3 0 300 0 0 0 10 5 2 256 0 0 719954
 00000000a05140cb ax0 F6BVP-2 * 0 0 0 0 0 10 0 3 0 300 0 0 0 10 5 2 256 0 0 717765
 
-Here are some examples of netstatAX25 output :
 
-AX25 connection when initiating a connection using ax25_call from F6BVP to F6BVP-8 :
-# ax25_call axudp f6bvp f6bvp-8
-
-~/netstatAX25$ ./netstatAX25  
-Active AX.25 Sockets
-Dest         Source       Device  State        Digis                 Vs/Vr    Send-Q  Recv-Q
-F6BVP-8      F6BVP-0      ax0     ESTABLISHED  *                     002/000       0       0
-
-AX25 connection when initiating a connection using ax25_call from F6BVP to F3KT-10 via F6BVP-8 :
-
-# ax25_call axudp f6bvp F3KT-10 f6bvp-8
-
-~/netstatAX25$ ./netstatAX25 
-Active AX.25 Sockets
-Dest         Source       Device  State        Digis                 Vs/Vr    Send-Q  Recv-Q
-F3KT-10      F6BVP-0      ax0     ESTABLISHED  F6BVP-8       -       000/000       0       0
-
-Example with a local active AX25 / ROSE FPAC node F6BVP-8/F6BVP-9
-and proposed new /proc/net/ax25 format :
+This will be more explicitly displayed using future new proc/net/ax25 format :
 
 magic             dev            src_addr     dest_addr    digi1        digi2        st vs vr va     t1     t2     t3     idle    n2  rtt win paclen Snd-Q Rcv-Q inode  
-00000000ab5919e3  ax0            F6BVP-0      F3KT-10      F6BVP-8      *             3  0  3  0    0/10    0/03  292/300  0/0   0/10   4   2    256     0     0 514761
 00000000d1468fad  ???            F6BVP-15     *            *            *             0  0  0  0    0/10    0/03    0/300  0/0   0/10   5   2    256     0     0 188395
 000000006fb8cff3  ???            F6BVP-15     *            *            *             0  0  0  0    0/10    0/03    0/300  0/0   0/10   5   2    256     0     0 188394
-0000000040d55b36  ax0            F6BVP-13     F6BVP-9      *            *             3  7  2  7    0/05    0/03  129/300  0/0   0/10   2   2    256     *     * 0
-00000000f7186a68  ax0            F6BVP-13     F6BVP-11     *            *             3  5  1  5    0/05    0/03  112/300  0/0   0/10   2   2    256     *     * 0
+0000000040d55b36  ax0            F6BVP-13     F6BVP-9      *            *             3  4  3  4    0/06    0/03  207/300  0/0   0/10   3   2    256     *     * 0
+00000000f7186a68  ax0            F6BVP-13     F6BVP-11     *            *             3  5  6  5    0/06    0/03  235/300  0/0   0/10   3   2    256     *     * 0
 00000000d737f5d8  ax0            F6BVP-12     *            *            *             0  0  0  0    0/10    0/03    0/300  0/0   0/10   5   2    256     0     0 189598
 00000000d653d2ef  ax0            F6BVP-12     *            *            *             0  0  0  0    0/10    0/03    0/300  0/0   0/10   5   2    256     0     0 189597
 00000000db9170f3  ax0            F6BVP-13     *            *            *             0  0  0  0    0/10    0/03    0/300  0/0   0/10   5   2    256     0     0 189596
 000000006c74df56  ax0            F6BVP-2      *            *            *             0  0  0  0    0/10    0/03    0/300  0/0   0/10   5   2    256     0     0 189587
 
-~/netstatAX25$ ./netstatAX25
+~/netstatAX25$ ./netstatAX25 
 Active AX.25 Sockets
-Destination  Source       Device  State        Digipeaters           Vs/Vr/Va      Send-Q  Recv-Q
-F3KT-10      F6BVP-0      ax0     ESTABLISHED  F6BVP-8       -       000/003/000        0       0
-*            F6BVP-15     ???     LISTENING    *                     000/000/000        0       0
-*            F6BVP-15     ???     LISTENING    *                     000/000/000        0       0
-F6BVP-9      F6BVP-13     ax0     ESTABLISHED  *                     007/002/007        *       *
-F6BVP-11     F6BVP-13     ax0     ESTABLISHED  *                     005/001/005        *       *
-*            F6BVP-12     ax0     LISTENING    *                     000/000/000        0       0
-*            F6BVP-13     ax0     LISTENING    *                     000/000/000        0       0
-*            F6BVP-2      ax0     LISTENING    *                     000/000/000        0       0
-
-
-
+Dest         Source       Device  State        Digis                 Vs/Vr    Send-Q  Recv-Q
+*            F6BVP-15     ???     LISTENING    *                     000/000       0       0
+*            F6BVP-15     ???     LISTENING    *                     000/000       0       0
+F6BVP-9      F6BVP-13     ax0     ESTABLISHED  *                     004/003       *       *
+F6BVP-11     F6BVP-13     ax0     ESTABLISHED  *                     005/006       *       *
+*            F6BVP-12     ax0     LISTENING    *                     000/000       0       0
+*            F6BVP-12     ax0     LISTENING    *                     000/000       0       0
+*            F6BVP-2      ax0     LISTENING    *                     000/000       0       0
