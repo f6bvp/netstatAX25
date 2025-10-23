@@ -1,73 +1,107 @@
 CHANGELOG
 
+2025-10-23 Bernard Pidoux <f6bvp@free.fr>
+
+    * netstatAX25 Version 1.0.2 released.
+
+    * **MAJOR FEATURE (File Handling):** Implemented a robust **two-pass
+      reading** mechanism for the kernel's virtual file 
+      `/proc/net/ax25` using `popen()`. 
+      
+      This technique ensures correct processing 
+      and display of all active connections, 
+      specifically **resolving issues where the 
+      last line of data might be missed** or truncated due to unpredictable EOF handling.
+
+    * Enhanced reading and parsing of the 
+      `/proc/net/ax25` kernel file.
+      
+      The program logic is now more robust against 
+      variations in kernel output and data formats:
+      
+      - **BUGFIX (Old Format):** Corrected the field 
+        indices for the **Vs/Vr/Va** sequence 
+        when parsing the **legacy format** (without header).
+          
+        (New indices: `VS` at field 5, `VR` at field 6, 
+        `VA` at field 7).
+
+      - **Refactoring (I18N):** All comments and 
+        internal documentation have been translated 
+        to **English**.
+
+      - **Code Cleanup:** Improved string termination 
+        logic using `line[strcspn(line, "\n")] = 0;` 
+        to ensure reliable tokenization by `strtok_r()`.
+
+---
+
 1.0.1 - 2025-10-22
 
-Maintenance release focused on metrics. Updated display for sequence numbers.
+Maintenance release focused on metrics. 
+Updated display for sequence numbers.
 
 Added
 
     Unacknowledged Frames (Va):
-
-        Implemented logic to read the Va value.
-
-        Displays unacknowledged frames from /proc/net/ax25.
+        Implemented logic to read the `Va` value.
+        Displays unacknowledged frames from 
+        `/proc/net/ax25`.
 
 Changed
 
     Sequence Display Format:
-
-        The Vs/Vr column is updated.
-
-        Now shows the full sequence status: Vs/Vr/Va.
-
+        The `Vs/Vr` column is updated.
+        Now shows the full sequence status: `Vs/Vr/Va`.
         Provides a complete overview of frame counters.
         
-        Vs (Send Sequence Number): "Displays the next frame number to be sent."
+        `Vs` (Send Sequence Number): 
+        "Displays the next frame number to be sent."
 
-        Vr (Receive Sequence Number): "Displays the next frame number expected from the remote station."
+        `Vr` (Receive Sequence Number): 
+        "Displays the next frame number expected from the 
+        remote station."
 
-        Va (Unacknowledged Frames): "Displays the number of frames sent but not yet acknowledged."
+        `Va` (Unacknowledged Frames): 
+        "Displays the number of frames sent but not yet 
+        acknowledged."
+
+---
 
 1.0.0 - 2025-10-21
 
-Initial major release of netstatAX25. Focused on robust compatibility. Supports various Linux kernel versions.
+Initial major release of netstatAX25. 
+Focused on robust compatibility. Supports 
+various Linux kernel versions.
 
 Added
 
-    Initial release of the netstatAX25 utility.
-
-    Core functionality implemented: read and display active AX.25 sockets.
-
-    Documentation files added: INSTALLING and README.md.
+    Initial release of the `netstatAX25` utility.
+    Core functionality implemented: read and display 
+    active AX.25 sockets.
+    Documentation files added: `INSTALLING` and `README.md`.
 
 Changed
 
     State Mapping:
-
         Kernel numerical states are mapped.
-
-        Uses user-friendly strings (e.g., ESTABLISHED).
+        Uses user-friendly strings (e.g., `ESTABLISHED`).
 
 Fixed
 
     Kernel Compatibility:
-
-        Resolved issues with the /proc/net/ax25 file format.
-
+        Resolved issues with the `/proc/net/ax25` 
+        file format.
         Supports both headered and headerless data formats.
 
     Dynamic Indexing:
-
         Corrected field parsing.
-
-        Ensures accurate reading of queues and sequence numbers.
+        Ensures accurate reading of queues and 
+        sequence numbers.
 
     Digipeater Extraction:
-
         Improved parsing logic.
-
         Reliably extracts comma-separated digipeaters.
 
     Error Handling:
-
         Enhanced specific diagnostic error reports.
