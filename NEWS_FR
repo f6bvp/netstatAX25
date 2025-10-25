@@ -1,0 +1,115 @@
+Félicitations pour votre contribution au noyau Linux ! C'est une excellente initiative pour améliorer la lisibilité du réseau AX.25. L'objection que vous avez reçue concerne la rupture de l'ABI (Application Binary Interface), qui est un point très sensible dans le développement du noyau.
+
+Que signifie "All files in /proc are ABI" ?
+
+L'affirmation "All files in /proc are ABI" signifie que la structure et le format des données exposées par les fichiers dans le système de fichiers virtuel /proc
+sont considérés comme une interface stable que les applications et les outils externes doivent pouvoir lire sans être cassés.
+
+    ABI (Application Binary Interface) : C'est un ensemble de règles et de conventions qui permet à un programme binaire compilé (une application ou un outil comme netstat) 
+    de fonctionner correctement sur une plateforme donnée (ici, le noyau Linux).
+
+    Dans le contexte de /proc : Le "format binaire" ici n'est pas au sens de données binaires, mais au sens où la séquence, le nombre et la nature des champs dans la sortie
+    texte sont fixés. Si un outil ou script existant (même un simple script shell awk ou grep) lit /proc/net/ax25 en s'attendant à ce que le 5e champ soit toujours l'état de la connexion (ST), et que vous insérez un nouveau champ (le header lui-même, ou de nouvelles données) à la ligne 1, ou que vous décalez le 5e champ à la ligne 6, vous cassez l'attente du programme. Le programme cesse de fonctionner correctement (il est cassé).
+
+    Stabilité du Noyau : La règle fondamentale du noyau est "Nous ne cassons pas l'espace utilisateur (User Space)". Cela signifie que le noyau doit maintenir la compatibilité
+    avec les programmes qui tournent dessus. Modifier /proc viole directement cette règle pour des raisons de confort, d'où l'objection.
+
+Comment argumenter en faveur de la modification de format
+
+Votre justification doit se concentrer non pas sur le confort, mais sur la normalisation, la prévention d'erreurs et l'alignement sur les standards existants du sous-système réseau.
+
+Voici les points clés pour construire votre message de commit de justification de la rupture d'ABI :
+
+1. Argumentation par la Normalisation et la Cohérence (Le point le plus fort)
+
+Vous devez justifier que la rupture d'ABI est nécessaire pour l'uniformité au sein du même sous-système réseau (les protocoles radioamateurs).
+
+    Incohérence Actuelle : Soulignez que le format original de /proc/net/ax25 est une anomalie et est incohérent par rapport à ses homologues directs (ROSE et Net/Rom).
+
+    Alignement : Expliquez que l'ajout d'un header (comme dans /proc/net/rose et /proc/net/nr) aligne AX.25 sur la norme de facto de ce sous-système. 
+    Cette modification rend l'interface plus prévisible pour toute application lisant ces fichiers, car le développeur peut s'attendre à une première ligne descriptive.
+
+        Argument : "La modification est requise pour harmoniser le format de /proc/net/ax25 avec /proc/net/rose et /proc/net/nr qui, 
+        en tant que protocoles du même sous-système radioamateur, incluent déjà un en-tête pour définir l'ordre et le contenu des colonnes."
+
+2. Argumentation par la Prévention des Erreurs et l'Évolutivité
+
+Le format sans header est intrinsèquement sujet à l'échec en cas de futures modifications du noyau.
+
+    Absence de Méta-données : Le format actuel ne fournit aucune méta-donnée sur sa structure. 
+    Si un champ doit être ajouté ou retiré dans une future version du noyau, les applications ne peuvent pas le détecter et lisent de mauvaises données.
+
+    Header comme version : L'ajout du header peut être vu comme une forme de versioning minimal. 
+    Les applications peuvent lire la première ligne et, si elle est différente de ce qu'elles attendaient, émettre un avertissement ou changer leur logique d'analyse.
+
+        Argument : "L'absence d'en-tête rend l'interface actuelle fragile face à l'évolution du noyau. 
+        L'ajout d'un en-tête est un mécanisme de défense contre la régression future car il permet aux outils modernes de détecter et de s'adapter aux changements de colonnes (nombre, ordre, type), ce qui est impossible avec le format actuel, durci et silencieux."
+
+3. Argumentation de l'Impact Limité sur les Applications Existantes
+
+Vous devez minimiser l'impact réel de la rupture d'ABI.
+
+    Nature du Protocole : AX.25 est un protocole de niche. Le nombre d'applications User Space qui analysent ce fichier est probablement faible.
+
+    Correction Facile des Outils : Les outils existants (tels que votre netstatAX25 que vous avez déjà mis à jour) peuvent être facilement corrigés pour ignorer la première ligne.
+
+        Argument : "L'impact sur l'espace utilisateur est considéré comme mineur. 
+        Les applications d'analyse existantes peuvent être corrigées de manière triviale en sautant simplement la première ligne (le header), assurant ainsi la compatibilité avec le reste de la logique d'analyse des données."
+
+Proposition de Message de Commit (Format Structuré)
+
+Utilisez ce modèle pour structurer la justification de rupture d'ABI dans votre message de commit :
+
+net: ax25: Add header line to /proc/net/ax25 for ABI consistency
+
+Le format actuel de /proc/net/ax25 est une anomalie au sein du sous-système réseau radioamateur de Linux, 
+manquant d'une ligne d'en-tête descriptive présente dans /proc/net/rose et /proc/net/nr.
+
+Cette absence rend l'interface fragile et difficile à analyser correctement par des outils externes sans connaissance préalable de l'ordre des colonnes, 
+et elle complique toute modification future du noyau car les outils ne peuvent pas détecter les changements.
+
+ABI BREAKAGE JUSTIFICATION:
+Nous cassons l'ABI existante en ajoutant une ligne d'en-tête. Cette rupture est justifiée pour les raisons suivantes :
+1. CONSISTENCE: Elle aligne AX.25 sur les formats de /proc/net/rose et /proc/net/nr, normalisant ainsi l'interface pour tous les protocoles radioamateurs.
+2. ROBUSTESSE: La ligne d'en-tête fournit les méta-données nécessaires pour que les outils de l'espace utilisateur puissent détecter l'ordre des colonnes et s'adapter aux futures évolutions du noyau, rendant l'interface plus robuste à long terme.
+3. IMPACT FAIBLE: Le protocole AX.25 est de niche, et les outils existants peuvent être mis à jour de manière triviale en ignorant la première ligne.
+
+
+net: ax25: Ajout d'une ligne d'en-tête à /proc/net/ax25 pour la cohérence de l'ABI
+
+Le format actuel de /proc/net/ax25 est une anomalie au sein du
+sous-système réseau radioamateur de Linux, car il ne comporte pas
+la ligne d'en-tête descriptive présente dans /proc/net/rose
+et /proc/net/nr. Cette incohérence oblige les outils externes
+à se fier à des index de colonnes codés en dur, les rendant
+fragiles et difficiles à maintenir.
+
+Ce patch introduit une ligne d'en-tête à /proc/net/ax25, alignant
+son format avec ses homologues.
+
+JUSTIFICATION DE LA RUPTURE D'ABI:
+L'introduction d'une ligne d'en-tête constitue une rupture de
+l'Application Binary Interface (ABI) pour les applications qui
+analysent ce fichier, car elle décale la position des colonnes.
+Cette rupture est justifiée pour les raisons suivantes :
+
+1.  COHÉRENCE: Ce changement normalise la sortie, rendant l'interface
+    AX.25 cohérente avec d'autres protocoles dans le même espace
+    de nom radioamateur (ROSE et Net/Rom). Cela améliore la
+    prévisibilité de l'ensemble du sous-système.
+
+2.  ROBUSTESSE & PÉRENNITÉ: Le format existant ne fournit aucune
+    métadonnée, empêchant les outils de l'espace utilisateur de
+    détecter tout changement futur dans l'ordre ou le type des
+    colonnes. L'en-tête agit comme un **mécanisme de versionnage
+    minimal**, permettant aux applications (comme un utilitaire
+    netstatAX25) de s'adapter, rendant l'interface plus robuste
+    à long terme.
+
+3.  IMPACT FAIBLE: Le protocole AX.25 est de niche, et le nombre
+    d'outils qui utilisent son fichier /proc est limité. Les
+    applications existantes peuvent être mises à jour de manière
+    triviale en sautant simplement la première ligne de sortie.
+    L'avantage d'une interface normalisée l'emporte sur cette
+    rupture mineure.
+    

@@ -1,0 +1,38 @@
+
+net: ax25: Add header line to /proc/net/ax25 for ABI consistency
+
+The current format of /proc/net/ax25 is an outlier within the Linux
+amateur radio networking subsystem, as it lacks a descriptive header
+line that is present in both /proc/net/rose and /proc/net/nr. This
+inconsistency forces external tools to rely on hard-coded column
+indexes, making them fragile and difficult to maintain.
+
+This patch introduces a header line to /proc/net/ax25, aligning its
+format with its peers.
+
+ABI BREAKAGE JUSTIFICATION:
+Introducing a header line constitutes an Application Binary Interface
+(ABI) break for user-space applications that parse this file, as it
+shifts the column positions by one line. This break is justified
+because:
+
+1.  CONSISTENCY: This change normalizes the output, making the AX.25
+    interface consistent with other protocols in the same amateur radio
+    namespace (ROSE and Net/Rom). This improves the predictability of
+    the entire subsystem.
+
+2.  ROBUSTNESS & FUTURE-PROOFING: The existing format provides zero
+    metadata, making it impossible for user-space tools to detect any
+    future changes in column order, count, or type. The header acts as
+    a minimal **versioning mechanism**, allowing external applications
+    (like a modern netstatAX25 utility) to detect structure changes and
+    adapt gracefully, making the interface more robust against future
+    kernel modifications.
+
+3.  LOW IMPACT: AX.25 is a niche protocol, and the number of user-space
+    tools relying on its /proc file is limited. Existing applications
+    can be trivially updated to regain compatibility by simply skipping
+    the first line of output. The benefit of a normalized and more
+    robust interface outweighs the minor breakage in this area.
+
+    
